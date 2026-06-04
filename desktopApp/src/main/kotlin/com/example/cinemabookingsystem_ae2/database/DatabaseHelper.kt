@@ -1,64 +1,83 @@
-package database
+package com.example.cinemabookingsystem_ae2.database
 
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
 
-/**
- * PHASE 1: Connection Setup
- * I am using the Singleton pattern here. This ensures that my application
- * maintains only one active connection to the SQLite database, which is
- * more efficient and avoids file-locking issues.
- */
 object DatabaseHelper {
-    // I am defining the path to my local database file
     private const val DB_URL = "jdbc:sqlite:cinema_booking.db"
     private var connection: Connection? = null
 
-    /**
-     * This method initializes the connection.
-     * I used a try-catch block to ensure that if the database file is missing,
-     * the program won't just crash without explanation.
-     */
     fun getConnection(): Connection {
-        try {
-            if (connection == null || connection!!.isClosed) {
-                Class.forName("org.sqlite.JDBC")
-                connection = DriverManager.getConnection(DB_URL)
-            }
-        } catch (e: Exception) {
-            System.err.println("I encountered an error connecting to the DB: ${e.message}")
-            throw RuntimeException(e)
+        if (connection == null || connection!!.isClosed) {
+            Class.forName("org.sqlite.JDBC")
+            connection = DriverManager.getConnection(DB_URL)
         }
         return connection!!
     }
-}
 
-/**
- * This is my isolated test.
- * Before building the complex UI, I run this to confirm that the
- * JDBC driver is working and the database file is correctly created.
- */
-fun main() {
-    println("Testing my database connection...")
-    val conn = DatabaseHelper.getConnection()
-    if (conn != null) {
-        println("Success! The connection is established and the file is created.")
+    fun initializeDatabase() {
+        val conn = getConnection()
+        val statement = conn.createStatement()
+
+        try {
+            statement.execute("PRAGMA foreign_keys = ON;")
+
+            // 1. Films Table
+            statement.execute("""
+                CREATE TABLE IF NOT EXISTS films (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    genre TEXT NOT NULL,
+                    base_price REAL NOT NULL
+                );
+            """.trimIndent())
+
+            // 2. Screenings Table
+            statement.execute("""
+                CREATE TABLE IF NOT EXISTS screenings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    film_id INTEGER,
+                    hall_number INTEGER NOT NULL,
+                    screening_date TEXT NOT NULL,
+                    start_time TEXT NOT NULL,
+                    FOREIGN KEY(film_id) REFERENCES films(id) ON DELETE CASCADE
+                );
+            """.trimIndent())
+
+            // 3. Seats Table
+            statement.execute("""
+                CREATE TABLE IF NOT EXISTS seats (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    screening_id INTEGER,
+                    seat_number TEXT NOT NULL,
+                    is_available INTEGER DEFAULT 1,
+                    FOREIGN KEY(screening_id) REFERENCES screenings(id) ON DELETE CASCADE
+                );
+            """.trimIndent())
+
+            // 4. Initial Data Seeding (Only if empty)
+            val rs = statement.executeQuery("SELECT COUNT(*) FROM films;")
+            if (rs.next() && rs.getInt(1) == 0) {
+                // Insert Sample Film
+                statement.execute("INSERT INTO films (title, genre, base_price) VALUES ('Inception', 'Sci-Fi', 10.0);")
+
+                // Insert Sample Screening
+                statement.execute("INSERT INTO screenings (film_id, hall_number, screening_date, start_time) VALUES (1, 1, '2026-06-10', '10:00');")
+
+                // Insert Sample Seats
+                statement.execute("INSERT INTO seats (screening_id, seat_number, is_available) VALUES (1, 'A1', 1);")
+
+                println("[DATABASE] Seeding complete! Sample data inserted.")
+            }
+
+            println("[DATABASE] Initialization verified.")
+        } catch (e: SQLException) {
+            System.err.println("Error initializing database: ${e.message}")
+        } finally {
+            statement.close()
+        }
     }
 }
-```eof
 
-### My Plan for the Report (The "Student's Voice")
 
-For my report, I will document this phase like this:
-
-1.  **Objective:** To establish a persistent data layer for the Cinema Booking System.
-2.  **Implementation:** I implemented a `DatabaseHelper` class using the Singleton pattern. This centralizes the database logic.
-3.  **Validation:** I created a `main()` function to perform a "smoke test." This confirms the SQLite connection is functional before attempting to execute complex SQL queries.
-
-**My next move:**
-1. I'll paste this into `database/DatabaseHelper.kt`.
-2. I'll run the `main()` function to see the "Success!" message.
-3. I'll take my **Screenshot #1** of this specific output.
-
-Does this first phase look good to you? Once you confirm you've got this running, let me know, and we will move to **Phase 2**, where I'll add the logic to create the tables!
