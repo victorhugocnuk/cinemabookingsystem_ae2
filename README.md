@@ -1,29 +1,26 @@
-This is a Kotlin Multiplatform project targeting Desktop (JVM).
+# Cinema Booking System (AE2)
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-    - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-    - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-      For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-      the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-      Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-      folder is the appropriate location.
+This repository contains the implementation of the Cinema Booking System developed for the Programming module at Solent University.
 
-### Running the apps
+## System Overview
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and
-options:
+The primary objective of this project is to provide a scalable reservation interface capable of managing film inventory, session schedules, and seat allocations.
 
-- Desktop app:
-    - Hot reload: `./gradlew :desktopApp:hotRun --auto`
-    - Standard run: `./gradlew :desktopApp:run`
+## Core Functionality
 
-### Running tests
+* **Database Integration**: Implementation of SQLite for persistent storage of films, screenings, and booking states.
+* **Booking Management**: Real-time seat selection with availability validation and transaction handling.
+* **Admin Utilities**: Dedicated interface for managing pricing models, special offers, and generating sales reports.
+* **Search Engine**: Query capabilities for filtering films by title and genre.
+* **Discount Logic**: Programmable discount engine supporting morning and group booking promotions.
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+## Technical Specifications
 
-- Desktop tests: `./gradlew :shared:jvmTest`
+* **Language**: Kotlin
+* **UI Framework**: Compose Multiplatform (Desktop)
+* **Database**: SQLite (JDBC)
+* **Build System**: Gradle
+* **Runtime**: JDK 17+
+```eof
 
----
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
